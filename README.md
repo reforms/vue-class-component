@@ -2,11 +2,15 @@
 
 ECMAScript / TypeScript decorator for class-style Vue components.
 
-[![npm](https://img.shields.io/npm/v/vue-class-component.svg)](https://www.npmjs.com/package/vue-class-component) [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/vuejs/vue-class-component) 
+[![npm](https://img.shields.io/npm/v/vue-class-component.svg)](https://www.npmjs.com/package/vue-class-component) [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/vuejs/vue-class-component)
 
 ## Document
 
 See [https://class-component.vuejs.org](https://class-component.vuejs.org)
+
+## Diff
+
+<mark>Supported classic inheritance for classes</mark>
 
 ## Online one-click setup for contributing
 

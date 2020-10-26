@@ -197,28 +197,241 @@ describe('vue-class-component', () => {
     })
   })
 
-  it('extending', function () {
-    @Component
+
+  // -----------------
+  it('EXTENDING', function () {
+    @Component({name: "Base"})
     class Base extends Vue {
       a!: number
       data (): any {
         return { a: 1 }
       }
+      method1(): any {
+        return "m1";
+      }
+
+      method2(): any {
+        return "g1";
+      }
+
+      method3(): any {
+        return this.method2();
+      }
     }
 
-    @Component
+    @Component({name: "A"})
     class A extends Base {
       b!: number
+      text1 = "m2:"
       data (): any {
         return { b: 2 }
+      }
+      method1(): any {
+        return this.text1 + super.method1();
+      }
+    }
+
+    @Component({name: "B"})
+    class B extends A {
+      b!: number
+      text2 = "m3:"
+      data (): any {
+        return { b: 2 }
+      }
+      method1(): any {
+        return this.text2 + super.method1();
+      }
+      method2(): any {
+        return "g3:" + super.method2();
       }
     }
 
     const a = new A()
     expect(a.a).to.equal(1)
     expect(a.b).to.equal(2)
-  })
+    expect(a.method1()).to.equal("m2:m1")
+    expect(a.method2()).to.equal("g1")
+    expect(a.method3()).to.equal("g1")
+    const b = new B()
+    expect(b.method1()).to.equal("m3:m2:m1")
+    expect(b.method2()).to.equal("g3:g1")
+    expect(b.method3()).to.equal("g3:g1")
 
+    expect(a.method3()).to.equal("g1")
+
+    expect(b.method3()).to.equal("g3:g1")
+  })
+// -----------------
+  it('HOOKING', function () {
+    let counter = 0;
+    @Component({name: "Base"})
+    class Base extends Vue {
+      docType = "init";
+      baseCounter = 0;
+      created(): void {
+        // console.log(">> base");
+        counter++;
+        this.baseCounter++;
+        this.docType = "init2";
+      }
+
+      get v1(): number {
+        return 0;
+      }
+    }
+
+    @Component({name: "A"})
+    class A extends Base {
+      aCounter = 0;
+      created(): void {
+        // console.log(">> a");
+        super.created();
+        counter++;
+        this.aCounter++;
+      }
+      activated(): void {
+      }
+      get v1(): number {
+        return 1;
+      }
+
+      get v2(): number {
+        return this.v1;
+      }
+    }
+
+    @Component({name: "B"})
+    class B extends A {
+      bCounter = 0;
+      created(): void {
+        // console.log(">> b");
+        super.created();
+        counter++;
+        this.bCounter++;
+      }
+      activated(): void {
+        // console.log(">>> ", this.v1);
+      }
+      get v1(): number {
+        return super.v1;
+      }
+    }
+
+    // console.log(">>> C declared");
+    @Component({name: "C"})
+    class C extends B {
+      // Должен вызывться тот, который в И
+      // created(): void {}
+      get v1(): number {
+        return super.v1
+      }
+    }
+
+    class B1 {
+      get v1(): number {
+        return 2;
+      }
+    }
+
+    class C1 extends B1 {
+      get v1(): number {
+        return super.v1;
+      }
+    }
+
+    const b = new B();
+    expect(b.bCounter).to.equal(1)
+    expect(b.aCounter).to.equal(1)
+    expect(b.v1).to.equal(1)
+    expect(b.v2).to.equal(1)
+    expect(counter).to.equal(3)
+    // console.log("b = " + b.bCounter, "; a = " + b.aCounter + "; base = " + b.baseCounter + ", counter = " + counter);
+
+    const a = new A();
+    expect(a.aCounter).to.equal(1)
+    expect(a.v1).to.equal(1)
+    expect(counter).to.equal(5)
+    // console.log("; a = " + a.aCounter + "; base = " + a.baseCounter + ", counter = " + counter);
+
+    const c = new C();
+    expect(c.bCounter).to.equal(1)
+    expect(c.v1).to.equal(1)
+    // new C1()
+    const c1 = new C1();
+    expect(c1.v1).to.equal(2)
+
+    b.created();
+    b.activated();
+    a.created();
+    a.activated();
+  })
+  // ----------------------
+// -----------------
+it('MIXINS', function () {
+  @Component({name: "Mixin1"})
+  class Mixin1 extends Vue {
+
+    method1(): any {
+      return "m1";
+    }
+
+    method2(): any {
+      return "g1";
+    }
+
+    method3(): any {
+      return this.method2();
+    }
+  }
+
+
+  @Component({
+    name: "A",
+    mixins: [Mixin1]
+  })
+  class A extends Vue {
+    b!: number
+    text1 = "m2:"
+
+    data (): any {
+      return { b: 2 }
+    }
+    method1(): any {
+      // console.log(this)
+      return this.text1 + "m1";
+    }
+  }
+
+  @Component({name: "B"})
+  class B extends A {
+    b!: number
+    text2 = "m3:"
+    data (): any {
+      return { b: 2 }
+    }
+    method1(): any {
+      return this.text2 + super.method1();
+    }
+    method2(): any {
+      return "g3:" + super.method1();
+    }
+  }
+
+  const a = new A()
+  // expect(a.a).to.equal(1)
+  expect(a.b).to.equal(2)
+  expect(a.method1()).to.equal("m2:m1")
+  // expect(a.method2()).to.equal("g1")
+  // expect(a.method3()).to.equal("g1")
+  /*const b = */new B()
+  // expect(b.method1()).to.equal("m3:m2:m1")
+  // expect(b.method2()).to.equal("g3:g1")
+  // expect(b.method3()).to.equal("g3:g1")
+
+  // expect(a.method3()).to.equal("g1")
+
+  // expect(b.method3()).to.equal("g3:g1")
+})
   // #199
   it('should not re-execute super class decortors', function (done) {
     const Watch = (valueKey: string) => createDecorator((options, key) => {

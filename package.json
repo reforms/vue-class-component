@@ -23,6 +23,7 @@
     "dev:test": "node build/dev-test.js",
     "lint": "eslint --ext js,jsx,ts,tsx,vue .",
     "test": "npm run build && webpack --config test/webpack.config.js && mocha test/test.build.js",
+    "test:only": "webpack --config test/webpack.config.js && mocha test/test.build.js",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "release": "bash build/release.sh"
